@@ -413,9 +413,12 @@ Run `az keyvault list-deleted -o table` again. The list is empty and the name is
 | The Metrics chart has no data | A new database can take a few minutes to report. Wait and refresh. |
 | The Metric dropdown says "We are sorry, we are not able to retrieve these" | Wait a few minutes and open the dropdown again. In the test run it cleared on its own. The cause was not found. |
 
-## What this lab does not do
+## What this lab teaches
 
-- It does not connect from the web server to the database. Step 9 proves the web server can read the password. Nothing here opens a SQL connection with it.
-- It does not move any data. The database server in Lab 02 held none, and `sqldb-app` starts empty.
-- It does not lock down the network. The SQL server has a public endpoint, and **Allow Azure services and resources to access this server** opens its firewall to addresses inside Azure that are not yours. The Key Vault accepts requests from every network, and role-based access is the only control. A production setup would use private endpoints and restrict both.
-- It does not use Microsoft Entra authentication for the database. The admin login is a SQL password.
+- **IaaS and PaaS are different jobs.** In Lab 02 the database server was a virtual machine that you built and looked after (IaaS). Here Azure runs the database and you only choose a size (PaaS). The SQL server in Azure is a container for databases, not a virtual machine.
+- **The settings decide the cost.** The wizard started on General Purpose Serverless. Switching to DTU-based Basic brought the estimate to $4.90 a month. Check the tier before you click Create.
+- **A secret belongs in a vault.** The SQL password sits in Key Vault, so it is not in code, in a file, or on the server.
+- **Access is granted, never assumed.** Creating the vault gave you no access to its secrets. You needed a role. You gave yourself Key Vault Secrets Officer to create the secret, and the web server got Key Vault Secrets User to read it. That is least privilege: each identity gets only what its job needs. Start from the vault's own Access control (IAM) page, because the roles listed depend on where you start.
+- **A managed identity replaces a password.** `vm-web-01` proved who it was to Azure with its own identity and read the secret with no password typed. The test stops there. It shows the web server can read the password, and it does not open a SQL connection with it.
+- **Deleted does not always mean gone.** Soft delete kept the vault for 90 days and held its name until you purged it.
+- **Public is simple, private is safer.** This lab uses a public endpoint with firewall rules, and **Allow Azure services and resources to access this server** lets in other customers' Azure resources too. A real environment would use a private endpoint and turn public access off.
